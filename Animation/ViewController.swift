@@ -17,45 +17,61 @@ class ViewController: UIViewController {
     func showCircle(){
         let viewsArray = Circle().drawCircles()
         for oneView in viewsArray {
-            view.addSubview(oneView)
+            oneView.transform = CGAffineTransform(scaleX: 0.4, y: 0.4)
+            Circle.animate(withDuration: 1, animations: {
+                oneView.transform = CGAffineTransform(scaleX: 1, y: 1)
+                oneView.alpha = 1
+                self.view.addSubview(oneView)
+                self.OnClickListener()
+            })
         }
-        let countCircle = view.subviews.count
         
+        
+    }
+    func OnClickListener(){
+
+        let viewsArray = Circle().drawCircles()
         for subView in view.subviews.filter({$0.alpha > 0}) {
             subView.setOnClickListener {
-                UIView.animateKeyframes(withDuration: 1, delay: 0, options: [.allowUserInteraction], animations: {
+                
+                Circle.animate(withDuration: 1, animations: {
                     viewsArray.forEach { _ in
                         subView.transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
                         subView.alpha = 0
                     }
-                    
-                    if self.view.subviews.filter({$0.alpha == 0}).count == countCircle {
+                }, completion: { (finished: Bool) -> Void in
+                    subView.removeFromSuperview()
+                    if self.view.subviews.count == 0 {
                         self.reDraw()
                     }
+                    
                 })
+                
             }
         }
     }
-    
     func reDraw() {
-        for item in self.view.subviews {
-            UIView.animateKeyframes(withDuration: 1, delay: 0, options: [.calculationModeCubic], animations: {
-                self.view.subviews.forEach { _ in
-                        item.transform = CGAffineTransform(scaleX: 1, y: 1)
-                    item.alpha = 1
-                    
-                }
-                
+        let viewsArray = Circle().drawCircles()
+        for oneView in viewsArray {
+            oneView.alpha = 0
+            oneView.transform = CGAffineTransform(scaleX: 0.4, y: 0.4)
+            Circle.animate(withDuration: 2, animations: {
+                oneView.transform = CGAffineTransform(scaleX: 1, y: 1)
+                oneView.alpha = 1
+                self.view.addSubview(oneView)
+                    self.OnClickListener()
             })
         }
     }
 }
 
+
+
 extension UIView {
     func setOnClickListener(action :@escaping () -> Void){
         let tapRecogniser = ClickListener(target: self, action: #selector(onViewClicked(sender:)))
         tapRecogniser.onClick = action
-        self.addGestureRecognizer(tapRecogniser)
+        self.addGestureRecognizer(tapRecogniser) 
     }
     
     @objc func onViewClicked(sender: ClickListener) {
@@ -69,9 +85,9 @@ extension UIView {
         let secondParams = (midX: Float(view.frame.midX), midY: Float(view.frame.midY), radius: Float(view.frame.width/2))
         let distance = (firstParams.midX - secondParams.midX, firstParams.midY - secondParams.midY)
         let hypotenuse = sqrtf(powf(distance.0, 2) + powf(distance.1, 2))
+        
         return hypotenuse - (firstParams.radius + secondParams.radius) <= 0 ? true : false
     }
-    
 }
 
 
